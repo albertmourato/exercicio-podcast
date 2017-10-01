@@ -49,6 +49,7 @@ public class MainActivity extends Activity {
     static Button mButtonItem;
     static PodcastDBHelper dbHelper;
     static Uri uriConsumer;
+    static PodcastProvider podcastProvider;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,7 +125,6 @@ public class MainActivity extends Activity {
             try {
                 itemList = XmlFeedParser.parse(getRssFeed(params[0]));
                 saveItems(getApplicationContext(), itemList);
-
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (XmlPullParserException e) {
@@ -168,6 +168,7 @@ public class MainActivity extends Activity {
             Cursor aux = dbHelper.getWritableDatabase().query(PodcastDBHelper.DATABASE_TABLE,
                     PodcastDBHelper.columns, PodcastDBHelper.EPISODE_LINK+"=?", new String[] {i.getLink()}, null, null,
                     null);
+            //so adiciona itens que nao estão no banco
             if(aux.getCount()<=0){
                 ContentValues c = new ContentValues();
                 c.put(PodcastDBHelper.EPISODE_TITLE, i.getTitle());
@@ -175,7 +176,7 @@ public class MainActivity extends Activity {
                 c.put(PodcastDBHelper.EPISODE_DATE, i.getPubDate());
                 c.put(PodcastDBHelper.EPISODE_DESC, i.getDescription());
                 c.put(PodcastDBHelper.EPISODE_DOWNLOAD_LINK, i.getDownloadLink());
-                context.getContentResolver().insert(PodcastProviderContract.EPISODE_LIST_URI, c);
+                podcastProvider.insert(PodcastProviderContract.EPISODE_LIST_URI, c);
                 //dbHelper.getWritableDatabase().insert(PodcastDBHelper.DATABASE_TABLE, null, c);
             }else{
                 Log.d("teste", "Episódio já salvo!");
