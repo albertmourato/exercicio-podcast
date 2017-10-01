@@ -1,5 +1,7 @@
 package br.ufpe.cin.if710.podcast.domain;
 
+import android.util.Log;
+
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -53,6 +55,13 @@ public class XmlFeedParser {
             }
         }
         return items;
+    }
+    public static void printTest(String s){
+        if(s!=null){
+            Log.i("teste", s+"ola");
+        }else{
+            Log.i("teste", "FALHOU");
+        }
     }
 
     public static ItemFeed readItem(XmlPullParser parser) throws XmlPullParserException, IOException {
@@ -114,9 +123,8 @@ public class XmlFeedParser {
     // Processa tags do tipo <enclosure> para obter dados do episodio
     public static String readEnclosure(XmlPullParser parser)
             throws IOException, XmlPullParserException {
-        //parser.require(XmlPullParser.START_TAG, null, "enclosure");
-        String data = "implementar...";
-        //parser.require(XmlPullParser.END_TAG, null, "enclosure");
+        String data = parser.getAttributeValue(null, "url");
+        printTest(data);
         return data;
     }
 

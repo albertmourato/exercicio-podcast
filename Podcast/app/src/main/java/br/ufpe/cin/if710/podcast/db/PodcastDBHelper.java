@@ -13,6 +13,7 @@ public class PodcastDBHelper extends SQLiteOpenHelper {
 
     private PodcastDBHelper(Context context) {
         super(context, DATABASE_NAME, null, DB_VERSION);
+        mContext = context;
     }
 
     private static PodcastDBHelper db;
@@ -31,6 +32,7 @@ public class PodcastDBHelper extends SQLiteOpenHelper {
     public final static String EPISODE_DESC = "description";
     public final static String EPISODE_DOWNLOAD_LINK = "downloadLink";
     public final static String EPISODE_FILE_URI = "downloadUri";
+    public Context mContext;
 
     public final static String[] columns = {
             _ID, EPISODE_TITLE, EPISODE_DATE, EPISODE_LINK,
@@ -43,11 +45,18 @@ public class PodcastDBHelper extends SQLiteOpenHelper {
                     + EPISODE_DATE + " TEXT NOT NULL, "
                     + EPISODE_LINK + " TEXT NOT NULL, "
                     + EPISODE_DESC + " TEXT NOT NULL, "
+                    + EPISODE_DOWNLOAD_LINK + " TEXT NOT NULL)";
+/**
+    final private static String CREATE_CMD =
+            "CREATE TABLE "+DATABASE_TABLE+" (" + _ID
+                    + " INTEGER PRIMARY KEY AUTOINCREMENT, "
+                    + EPISODE_TITLE + " TEXT NOT NULL, "
+                    + EPISODE_DATE + " TEXT NOT NULL, "
+                    + EPISODE_LINK + " TEXT NOT NULL, "
+                    + EPISODE_DESC + " TEXT NOT NULL, "
                     + EPISODE_DOWNLOAD_LINK + " TEXT NOT NULL, "
                     + EPISODE_FILE_URI + " TEXT NOT NULL)";
-
-
-
+*/
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
         sqLiteDatabase.execSQL(CREATE_CMD);
@@ -56,5 +65,9 @@ public class PodcastDBHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
         throw new RuntimeException("inutilizado");
+    }
+
+    public static void deleteDatabase(Context mContext) {
+        mContext.deleteDatabase(PodcastDBHelper.DATABASE_NAME);
     }
 }

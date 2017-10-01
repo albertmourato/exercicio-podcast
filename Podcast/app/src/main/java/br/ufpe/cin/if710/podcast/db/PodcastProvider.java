@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.net.Uri;
 
 public class PodcastProvider extends ContentProvider {
+    PodcastDBHelper dbHelper = PodcastDBHelper.getInstance(getContext());
     public PodcastProvider() {
     }
 
@@ -25,7 +26,8 @@ public class PodcastProvider extends ContentProvider {
     @Override
     public Uri insert(Uri uri, ContentValues values) {
         // TODO: Implement this to handle requests to insert a new row.
-        throw new UnsupportedOperationException("Not yet implemented");
+        long id = dbHelper.getWritableDatabase().insert(PodcastDBHelper.DATABASE_TABLE, null, values);
+        return Uri.withAppendedPath(PodcastProviderContract.EPISODE_LIST_URI, id+"");
     }
 
     @Override
