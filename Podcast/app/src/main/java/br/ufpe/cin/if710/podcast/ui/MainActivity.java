@@ -48,7 +48,7 @@ public class MainActivity extends Activity {
     private final String RSS_FEED = "http://leopoldomt.com/if710/fronteirasdaciencia.xml";
     //TODO teste com outros links de podcast
 
-    static ListView items;
+    public ListView items;
     static Button mButtonItem;
     static PodcastDBHelper dbHelper;
     static Uri uriConsumer;
@@ -69,9 +69,11 @@ public class MainActivity extends Activity {
     }
 
     public void setListeners(){
+
         items.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Log.d("list", i+"");
                 XmlFeedAdapter xmlFeedAdapter = (XmlFeedAdapter) adapterView.getAdapter();
                 ItemFeed item = xmlFeedAdapter.getItem(i);
                 Intent intent = new Intent(getApplicationContext(), EpisodeDetailActivity.class);
@@ -203,8 +205,7 @@ public class MainActivity extends Activity {
             Cursor aux = getContentResolver().query(PodcastProviderContract.EPISODE_LIST_URI, null,
                     PodcastProviderContract.EPISODE_LINK+"=?", new String[]{i.getLink()}, null);
 
-            Cursor aux2 = getContentResolver().query(PodcastProviderContract.EPISODE_LIST_URI, null,
-                    "", null, null);
+            //Cursor aux2 = getContentResolver().query(PodcastProviderContract.EPISODE_LIST_URI, null,"", null, null);
 
             Log.d("link", i.getLink()+"");
             Log.d("title", i.getTitle()+"");
