@@ -10,13 +10,14 @@ import android.net.Uri;
 public class PodcastProviderContract {
 
     public static final String _ID = "_id";
-    public static final String TITLE = "nome";
-    public static final String DATE = "cpf";
-    public static final String DESCRIPTION = "email";
-    public static final String EPISODE_LINK = "media";
-    public static final String DOWNLOAD_LINK = "media";
-    public static final String EPISODE_URI = "media";
-    public static final String EPISODE_TABLE = "episodes";
+    public static final String TITLE = "episodeTitle";
+    public static final String DATE = "episodeDate";
+    public static final String DESCRIPTION = "description";
+    public static final String EPISODE_LINK = "episodeLink";
+    public static final String DOWNLOAD_LINK = "downloadLink";
+    public static final String EPISODE_URI = "episodeURI";
+
+    public static final String EPISODE_TABLE = "episodeTable";
 
 
     public final static String[] ALL_COLUMNS = {

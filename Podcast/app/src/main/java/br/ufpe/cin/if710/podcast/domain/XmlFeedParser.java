@@ -56,13 +56,6 @@ public class XmlFeedParser {
         }
         return items;
     }
-    public static void printTest(String s){
-        if(s!=null){
-            Log.i("teste", s+"ola");
-        }else{
-            Log.i("teste", "FALHOU");
-        }
-    }
 
     public static ItemFeed readItem(XmlPullParser parser) throws XmlPullParserException, IOException {
         String title = null;
@@ -79,8 +72,9 @@ public class XmlFeedParser {
             if (name.equals("title")) {
                 title = readData(parser, "title");
             }
-            else if (name.equals("link")) {
-                link = readData(parser, "link");
+            else if (name.equals("guid")) {
+                link = readData(parser, "guid"); //apanhando pq n sabia q era guid
+                //Log.d("link", link+"OLHA");
             }
             else if (name.equals("pubDate")) {
                 pubDate = readData(parser, "pubDate");
@@ -124,7 +118,6 @@ public class XmlFeedParser {
     public static String readEnclosure(XmlPullParser parser)
             throws IOException, XmlPullParserException {
         String data = parser.getAttributeValue(null, "url");
-        printTest(data);
         return data;
     }
 

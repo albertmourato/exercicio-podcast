@@ -6,7 +6,8 @@ import android.database.Cursor;
 import android.net.Uri;
 
 public class PodcastProvider extends ContentProvider {
-    PodcastDBHelper dbHelper = PodcastDBHelper.getInstance(getContext());
+    //PodcastDBHelper dbHelper = PodcastDBHelper.getInstance(getContext()); <- isso dá erro
+    PodcastDBHelper dbHelper;
     public PodcastProvider() {
     }
 
@@ -26,26 +27,41 @@ public class PodcastProvider extends ContentProvider {
     @Override
     public Uri insert(Uri uri, ContentValues values) {
         // TODO: Implement this to handle requests to insert a new row.
-        long id = dbHelper.getWritableDatabase().insert(PodcastDBHelper.DATABASE_TABLE, null, values);
-        return Uri.withAppendedPath(PodcastProviderContract.EPISODE_LIST_URI, id+"");
+        if(verifyUriEpisode(uri)){
+            long id = dbHelper.getWritableDatabase().insert(PodcastDBHelper.DATABASE_TABLE, null, values);
+            return Uri.withAppendedPath(PodcastProviderContract.EPISODE_LIST_URI, id+"");
+        }else{
+            throw new UnsupportedOperationException("Not yet implemented");
+        }
+    }
+
+    public boolean verifyUriEpisode(Uri uri){
+        return uri.getLastPathSegment().equals(PodcastProviderContract.EPISODE_TABLE);
     }
 
     @Override
     public boolean onCreate() {
-        // TODO: Implement this to initialize your content provider on startup.
+        dbHelper = PodcastDBHelper.getInstance(getContext()); //Isso nao da erro :)
         return false;
     }
 
     @Override
     public Cursor query(Uri uri, String[] projection, String selection,
                         String[] selectionArgs, String sortOrder) {
-        // TODO: Implement this to handle query requests from clients.
-        return dbHelper.getWritableDatabase().query(PodcastDBHelper.DATABASE_TABLE, projection, selection, selectionArgs, null, null, sortOrder);
+        if(verifyUriEpisode(uri)){
+            return dbHelper.getWritableDatabase().query(PodcastDBHelper.DATABASE_TABLE, projection, selection, selectionArgs, null, null, sortOrder);
+        }else{
+            throw new UnsupportedOperationException("Not yet implemented");
+        }
     }
 
     @Override
     public int update(Uri uri, ContentValues values, String selection,
                       String[] selectionArgs) {
-        return dbHelper.getWritableDatabase().update(PodcastDBHelper.DATABASE_TABLE, values, selection, selectionArgs);
+        if(verifyUriEpisode(uri)){
+            return dbHelper.getWritableDatabase().update(PodcastDBHelper.DATABASE_TABLE, values, selection, selectionArgs);
+        } else{
+            throw new UnsupportedOperationException("Not yet implemented");
+        }
     }
 }
