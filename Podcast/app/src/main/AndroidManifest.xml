@@ -3,6 +3,8 @@
     package="br.ufpe.cin.if710.podcast">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
 
     <application
         android:allowBackup="true"
@@ -27,6 +29,19 @@
             android:exported="true" />
 
         <activity android:name=".ui.EpisodeDetailActivity"></activity>
+        <service
+            android:name=".util.DownloadService"
+            android:enabled="true"
+            android:exported="true" />
+
+        <receiver android:name=".util.GlobalBroadcastReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="br.ufpe.cin.if1001.services.action.DOWNLOAD_COMPLETE"/>
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>

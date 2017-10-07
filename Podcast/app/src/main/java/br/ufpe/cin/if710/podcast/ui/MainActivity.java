@@ -1,6 +1,7 @@
 package br.ufpe.cin.if710.podcast.ui;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -10,6 +11,7 @@ import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,6 +27,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
@@ -48,12 +51,14 @@ public class MainActivity extends Activity {
     private final String RSS_FEED = "http://leopoldomt.com/if710/fronteirasdaciencia.xml";
     //TODO teste com outros links de podcast
 
-    public ListView items;
+    static ListView items;
     static Button mButtonItem;
     static PodcastDBHelper dbHelper;
     static Uri uriConsumer;
     static PodcastProvider podcastProvider;
     static Context mContext;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,12 +89,6 @@ public class MainActivity extends Activity {
             }
         });
 
-        mButtonItem.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-            }
-        });
     }
 
     @Override
@@ -177,10 +176,10 @@ public class MainActivity extends Activity {
     }
 
 
-    public List<ItemFeed> readItems(){
+    public ArrayList<ItemFeed> readItems(){
         Cursor c =  getContentResolver().query(PodcastProviderContract.EPISODE_LIST_URI, null,
                 "", null, null);
-        List <ItemFeed> l = new ArrayList<>();
+        ArrayList <ItemFeed> l = new ArrayList<>();
         c.moveToFirst();
         while(c.moveToNext()){
             String title = c.getString(c.getColumnIndex(PodcastProviderContract.TITLE));
@@ -194,6 +193,19 @@ public class MainActivity extends Activity {
         return l;
     }
 
+
+
+    private BroadcastReceiver downloadCompletedEvent = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            ArrayList<ItemFeed> arrayList = readItems();
+            XmlFeedAdapter adapter = new XmlFeedAdapter(getApplicationContext(), R.layout.itemlista, arrayList);
+
+            //atualizar o list view
+            items.setAdapter(adapter);
+            items.setTextFilterEnabled(true);
+        }
+    };
 
 
     public void saveItems(Context context, List<ItemFeed> list){
@@ -222,7 +234,8 @@ public class MainActivity extends Activity {
                 c.put(PodcastProviderContract.DATE, i.getPubDate());
                 c.put(PodcastProviderContract.DESCRIPTION, i.getDescription());
                 c.put(PodcastProviderContract.DOWNLOAD_LINK, i.getDownloadLink());
-                c.put(PodcastProviderContract.EPISODE_URI, "");
+                c.put(PodcastProviderContract.EPISODE_URI, Environment.DIRECTORY_DOWNLOADS+i.getTitle()+".mp4");
+
                 getContentResolver().insert(PodcastProviderContract.EPISODE_LIST_URI, c);
                 //podcastProvider.insert(PodcastProviderContract.EPISODE_LIST_URI, c);
                 //dbHelper.getWritableDatabase().insert(PodcastDBHelper.DATABASE_TABLE, null, c);
