@@ -38,7 +38,7 @@
             android:enabled="true"
             android:exported="true">
             <intent-filter>
-                <action android:name="br.ufpe.cin.if1001.services.action.DOWNLOAD_COMPLETE"/>
+                <action android:name="br.ufpe.cin.if710.services.action.DOWNLOAD_COMPLETE"/>
             </intent-filter>
         </receiver>
 

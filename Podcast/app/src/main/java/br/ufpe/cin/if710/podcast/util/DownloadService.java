@@ -47,10 +47,12 @@ public class DownloadService extends IntentService {
                 if (output.exists()) {
                     output.delete();
                 }
+                Log.d("service", "DEPOIS DO IF");
                 URL url = new URL(i.getData().toString());
                 HttpURLConnection c = (HttpURLConnection) url.openConnection();
                 FileOutputStream fos = new FileOutputStream(output.getPath());
                 BufferedOutputStream out = new BufferedOutputStream(fos);
+
                 try {
                     InputStream in = c.getInputStream();
                     byte[] buffer = new byte[8192];
@@ -61,13 +63,13 @@ public class DownloadService extends IntentService {
                     out.flush();
                 }
                 finally {
-                    Intent intent = new Intent(DOWNLOAD_COMPLETE);
-                    LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(DOWNLOAD_COMPLETE));
-                    Log.d("broadcast", "TERMINOU!!!!!!!!!!!!!");
                     fos.getFD().sync();
                     out.close();
                     c.disconnect();
                 }
+                Intent intent = new Intent(DOWNLOAD_COMPLETE);
+                LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(DOWNLOAD_COMPLETE));
+
                 //Toast.makeText(getApplicationContext(), "DOWNLOAD FINALIZADO!", Toast.LENGTH_LONG).show();
 
             }else{
