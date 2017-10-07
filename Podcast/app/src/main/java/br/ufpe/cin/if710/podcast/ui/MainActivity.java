@@ -1,17 +1,22 @@
 package br.ufpe.cin.if710.podcast.ui;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -42,6 +47,7 @@ import br.ufpe.cin.if710.podcast.db.PodcastProviderContract;
 import br.ufpe.cin.if710.podcast.domain.ItemFeed;
 import br.ufpe.cin.if710.podcast.domain.XmlFeedParser;
 import br.ufpe.cin.if710.podcast.ui.adapter.XmlFeedAdapter;
+import br.ufpe.cin.if710.podcast.util.DownloadService;
 
 import static java.security.AccessController.getContext;
 
@@ -69,8 +75,10 @@ public class MainActivity extends Activity {
         items = (ListView) findViewById(R.id.items);
         items.setClickable(true);
         mButtonItem = (Button) View.inflate(getApplicationContext(), R.layout.itemlista, null).findViewById(R.id.item_action);
-
-        setListeners();
+        if (!(checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+        }
+            setListeners();
     }
 
     public void setListeners(){
@@ -85,6 +93,7 @@ public class MainActivity extends Activity {
                 intent.putExtra(PodcastProviderContract.TITLE, item.getTitle());
                 intent.putExtra(PodcastProviderContract.EPISODE_LINK, item.getLink());
                 intent.putExtra(PodcastProviderContract.DESCRIPTION, item.getDescription());
+                intent.putExtra(PodcastProviderContract.DOWNLOAD_LINK, item.getDownloadLink());
                 startActivity(intent);
             }
         });
@@ -118,6 +127,13 @@ public class MainActivity extends Activity {
         new DownloadXmlTask().execute(RSS_FEED);
     }
 
+
+    protected void onResume(){
+        super.onResume();
+        IntentFilter intent = new IntentFilter(DownloadService.DOWNLOAD_COMPLETE);
+        LocalBroadcastManager.getInstance(this).registerReceiver(downloadCompletedEvent, intent);
+    }
+
     @Override
     protected void onStop() {
         super.onStop();
@@ -128,7 +144,7 @@ public class MainActivity extends Activity {
     private class DownloadXmlTask extends AsyncTask<String, Void, List<ItemFeed>> {
         @Override
         protected void onPreExecute() {
-            Toast.makeText(getApplicationContext(), "iniciando...", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(getApplicationContext(), "iniciando...", Toast.LENGTH_SHORT).show();
         }
 
         @Override
@@ -147,7 +163,7 @@ public class MainActivity extends Activity {
 
         @Override
         protected void onPostExecute(List<ItemFeed> feed) {
-            Toast.makeText(getApplicationContext(), "terminando...", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(getApplicationContext(), "terminando...", Toast.LENGTH_SHORT).show();
 
             feed = readItems();
 
@@ -158,7 +174,33 @@ public class MainActivity extends Activity {
             items.setAdapter(adapter);
             items.setTextFilterEnabled(true);
             /*
-            items.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            items.setOnItemClickLi private class DownloadXmlTask extends AsyncTask<String, Void, List<ItemFeed>> {
+        @Override
+        protected void onPreExecute() {
+            //Toast.makeText(getApplicationContext(), "iniciando...", Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        protected List<ItemFeed> doInBackground(String... params) {
+            List<ItemFeed> itemList = new ArrayList<>();
+            try {
+                itemList = XmlFeedParser.parse(getRssFeed(params[0]));
+                saveItems(mContext, itemList);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (XmlPullParserException e) {
+                e.printStackTrace();
+            }
+            return itemList;
+        }
+
+        @Override
+        protected void onPostExecute(List<ItemFeed> feed) {
+            //Toast.makeText(getApplicationContext(), "terminando...", Toast.LENGTH_SHORT).show();
+
+            feed = readItems();
+
+            //Adapter Personalizadstener(new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     XmlFeedAdapter adapter = (XmlFeedAdapter) parent.getAdapter();
@@ -169,10 +211,6 @@ public class MainActivity extends Activity {
             });
             /**/
         }
-    }
-    public boolean isInternetAvaliable() {
-        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        return (cm.getActiveNetworkInfo() != null) && (cm.getActiveNetworkInfo().isConnectedOrConnecting());
     }
 
 
@@ -204,6 +242,8 @@ public class MainActivity extends Activity {
             //atualizar o list view
             items.setAdapter(adapter);
             items.setTextFilterEnabled(true);
+
+            Toast.makeText(getApplicationContext(), "Itens atualizados!", Toast.LENGTH_SHORT).show();
         }
     };
 

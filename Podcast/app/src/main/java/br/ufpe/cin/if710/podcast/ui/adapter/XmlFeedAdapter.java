@@ -1,8 +1,13 @@
 package br.ufpe.cin.if710.podcast.ui.adapter;
 
 import java.util.List;
+
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.support.v4.app.ActivityCompat;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -14,6 +19,7 @@ import br.ufpe.cin.if710.podcast.R;
 import br.ufpe.cin.if710.podcast.db.PodcastProviderContract;
 import br.ufpe.cin.if710.podcast.domain.ItemFeed;
 import br.ufpe.cin.if710.podcast.ui.EpisodeDetailActivity;
+import br.ufpe.cin.if710.podcast.util.DownloadService;
 
 public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
 
@@ -77,7 +83,11 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Toast.makeText(getContext(), "Botao da posicao "+position, Toast.LENGTH_LONG).show();
+                //Toast.makeText(getContext(), "Botao da posicao "+position, Toast.LENGTH_LONG).show();
+                Intent i = new Intent(getContext(),DownloadService.class);
+                //passando link pro getData do service
+                i.setData(Uri.parse(getItem(position).getDownloadLink()));
+                getContext().startService(i);
             }
         });
 /**
