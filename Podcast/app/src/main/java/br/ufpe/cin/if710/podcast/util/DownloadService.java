@@ -67,9 +67,14 @@ public class DownloadService extends IntentService {
                     out.close();
                     c.disconnect();
                 }
+                //implicit
                 Intent intent = new Intent(DOWNLOAD_COMPLETE);
-                intent.putExtra("itemBaixado", i);
-                LocalBroadcastManager.getInstance(this).sendBroadcast(new Intent(DOWNLOAD_COMPLETE));
+                //explicit
+                //Intent intent = new Intent(getApplicationContext(), GlobalBroadcastReceiver.class);
+                //intent.putExtra("itemBaixado", i);
+                LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+
+                //sendBroadcast(intent);
 
                 //Toast.makeText(getApplicationContext(), "DOWNLOAD FINALIZADO!", Toast.LENGTH_LONG).show();
 

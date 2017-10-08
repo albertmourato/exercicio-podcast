@@ -133,6 +133,11 @@ public class MainActivity extends Activity {
         LocalBroadcastManager.getInstance(this).registerReceiver(downloadCompletedEvent, intent);
     }
 
+    protected void onPause(){
+        super.onPause();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(downloadCompletedEvent);
+    }
+
     @Override
     protected void onStop() {
         super.onStop();

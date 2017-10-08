@@ -23,7 +23,7 @@ public class GlobalBroadcastReceiver extends BroadcastReceiver {
 
         final Notification notification = new Notification.Builder(
                 context)
-                .setSmallIcon(android.R.drawable.ic_media_play)
+                .setSmallIcon(android.R.drawable.stat_sys_download_done)
                 .setOngoing(true).setContentTitle("Download finalizado!")
                 .setContentText("Clique para acessar a lista de episódios.")
                 .setContentIntent(pendingIntent).build();
