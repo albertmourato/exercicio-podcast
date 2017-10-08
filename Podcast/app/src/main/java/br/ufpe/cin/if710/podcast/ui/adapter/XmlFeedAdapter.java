@@ -88,6 +88,7 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
                 //passando link pro getData do service
                 i.setData(Uri.parse(getItem(position).getDownloadLink()));
                 getContext().startService(i);
+                button.setText("Baixando...");
             }
         });
 /**

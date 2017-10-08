@@ -16,6 +16,7 @@ public class PodcastProviderContract {
     public static final String EPISODE_LINK = "episodeLink";
     public static final String DOWNLOAD_LINK = "downloadLink";
     public static final String EPISODE_URI = "episodeURI";
+    public static final String EPISODE_TIME = "episodeTime";
 
     public static final String EPISODE_TABLE = "episodeTable";
 

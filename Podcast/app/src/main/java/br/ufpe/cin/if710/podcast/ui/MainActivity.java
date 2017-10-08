@@ -74,7 +74,6 @@ public class MainActivity extends Activity {
         dbHelper = PodcastDBHelper.getInstance(getApplicationContext());
         items = (ListView) findViewById(R.id.items);
         items.setClickable(true);
-        mButtonItem = (Button) View.inflate(getApplicationContext(), R.layout.itemlista, null).findViewById(R.id.item_action);
         if (!(checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
         }
@@ -173,43 +172,7 @@ public class MainActivity extends Activity {
             //atualizar o list view
             items.setAdapter(adapter);
             items.setTextFilterEnabled(true);
-            /*
-            items.setOnItemClickLi private class DownloadXmlTask extends AsyncTask<String, Void, List<ItemFeed>> {
-        @Override
-        protected void onPreExecute() {
-            //Toast.makeText(getApplicationContext(), "iniciando...", Toast.LENGTH_SHORT).show();
-        }
 
-        @Override
-        protected List<ItemFeed> doInBackground(String... params) {
-            List<ItemFeed> itemList = new ArrayList<>();
-            try {
-                itemList = XmlFeedParser.parse(getRssFeed(params[0]));
-                saveItems(mContext, itemList);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (XmlPullParserException e) {
-                e.printStackTrace();
-            }
-            return itemList;
-        }
-
-        @Override
-        protected void onPostExecute(List<ItemFeed> feed) {
-            //Toast.makeText(getApplicationContext(), "terminando...", Toast.LENGTH_SHORT).show();
-
-            feed = readItems();
-
-            //Adapter Personalizadstener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    XmlFeedAdapter adapter = (XmlFeedAdapter) parent.getAdapter();
-                    ItemFeed item = adapter.getItem(position);
-                    String msg = item.getTitle() + " " + item.getLink();
-                    Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
-                }
-            });
-            /**/
         }
     }
 
@@ -231,7 +194,9 @@ public class MainActivity extends Activity {
         return l;
     }
 
-
+    public String getNameUri(String s){
+        return s.substring(s.lastIndexOf('/'), s.length());
+    }
 
     private BroadcastReceiver downloadCompletedEvent = new BroadcastReceiver() {
         @Override
@@ -274,9 +239,10 @@ public class MainActivity extends Activity {
                 c.put(PodcastProviderContract.DATE, i.getPubDate());
                 c.put(PodcastProviderContract.DESCRIPTION, i.getDescription());
                 c.put(PodcastProviderContract.DOWNLOAD_LINK, i.getDownloadLink());
-                c.put(PodcastProviderContract.EPISODE_URI, Environment.DIRECTORY_DOWNLOADS+i.getTitle()+".mp4");
-
+                c.put(PodcastProviderContract.EPISODE_URI, Environment.DIRECTORY_DOWNLOADS+getNameUri(i.getDownloadLink()));
+                c.put(PodcastProviderContract.EPISODE_TIME, 0);
                 getContentResolver().insert(PodcastProviderContract.EPISODE_LIST_URI, c);
+                Log.d("diretorio", Environment.DIRECTORY_DOWNLOADS+getNameUri(i.getDownloadLink()));
                 //podcastProvider.insert(PodcastProviderContract.EPISODE_LIST_URI, c);
                 //dbHelper.getWritableDatabase().insert(PodcastDBHelper.DATABASE_TABLE, null, c);
 
