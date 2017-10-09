@@ -1,6 +1,9 @@
-package br.ufpe.cin.if710.podcast.util;
+package br.ufpe.cin.if710.podcast.services;
 import android.Manifest;
 import android.app.IntentService;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -21,8 +24,11 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 import br.ufpe.cin.if710.podcast.db.PodcastDBHelper;
+import br.ufpe.cin.if710.podcast.ui.MainActivity;
 
 public class DownloadService extends IntentService {
+
+
 
     public static final String DOWNLOAD_COMPLETE = "br.ufpe.cin.if710.services.action.DOWNLOAD_COMPLETE";
     public static PodcastDBHelper podcastDBHelper;
@@ -72,7 +78,13 @@ public class DownloadService extends IntentService {
                 //explicit
                 //Intent intent = new Intent(getApplicationContext(), GlobalBroadcastReceiver.class);
                 //intent.putExtra("itemBaixado", i);
-                LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+
+                if(MainActivity.activityRunning){
+                    LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+                }else{
+                    sendBroadcast(intent);
+                }
+
 
                 //sendBroadcast(intent);
 

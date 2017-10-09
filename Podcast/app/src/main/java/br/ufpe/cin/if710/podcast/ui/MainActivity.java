@@ -3,14 +3,12 @@ package br.ufpe.cin.if710.podcast.ui;
 import android.Manifest;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
-import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -21,7 +19,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
@@ -32,12 +29,9 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 import br.ufpe.cin.if710.podcast.R;
@@ -46,16 +40,17 @@ import br.ufpe.cin.if710.podcast.db.PodcastProvider;
 import br.ufpe.cin.if710.podcast.db.PodcastProviderContract;
 import br.ufpe.cin.if710.podcast.domain.ItemFeed;
 import br.ufpe.cin.if710.podcast.domain.XmlFeedParser;
+import br.ufpe.cin.if710.podcast.services.EpisodeListDownloadService;
 import br.ufpe.cin.if710.podcast.ui.adapter.XmlFeedAdapter;
-import br.ufpe.cin.if710.podcast.util.DownloadService;
-
-import static java.security.AccessController.getContext;
+import br.ufpe.cin.if710.podcast.services.DownloadService;
 
 public class MainActivity extends Activity {
 
     //ao fazer envio da resolucao, use este link no seu codigo!
-    private final String RSS_FEED = "http://leopoldomt.com/if710/fronteirasdaciencia.xml";
+    public static final String RSS_FEED = "http://leopoldomt.com/if710/fronteirasdaciencia.xml";
     //TODO teste com outros links de podcast
+
+    public static boolean activityRunning = false;
 
     static ListView items;
     static Button mButtonItem;
@@ -77,7 +72,9 @@ public class MainActivity extends Activity {
         if (!(checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
         }
-            setListeners();
+        setListeners();
+
+
     }
 
     public void setListeners(){
@@ -123,63 +120,37 @@ public class MainActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
-        new DownloadXmlTask().execute(RSS_FEED);
+        activityRunning = true;
+        Intent i = new Intent(this, EpisodeListDownloadService.class);
+        startService(i);
     }
 
 
     protected void onResume(){
         super.onResume();
+        activityRunning = true;
         IntentFilter intent = new IntentFilter(DownloadService.DOWNLOAD_COMPLETE);
         LocalBroadcastManager.getInstance(this).registerReceiver(downloadCompletedEvent, intent);
+
+        IntentFilter intent2 = new IntentFilter(EpisodeListDownloadService.downloadEpisodeList);
+        LocalBroadcastManager.getInstance(this).registerReceiver(episodeDownloadListEvent, intent2);
+
     }
 
     protected void onPause(){
         super.onPause();
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(downloadCompletedEvent);
+        activityRunning = false;
+        //LocalBroadcastManager.getInstance(this).unregisterReceiver(downloadCompletedEvent);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        activityRunning = false;
         XmlFeedAdapter adapter = (XmlFeedAdapter) items.getAdapter();
         if(adapter!=null) adapter.clear();
     }
 
-    private class DownloadXmlTask extends AsyncTask<String, Void, List<ItemFeed>> {
-        @Override
-        protected void onPreExecute() {
-            //Toast.makeText(getApplicationContext(), "iniciando...", Toast.LENGTH_SHORT).show();
-        }
-
-        @Override
-        protected List<ItemFeed> doInBackground(String... params) {
-            List<ItemFeed> itemList = new ArrayList<>();
-            try {
-                itemList = XmlFeedParser.parse(getRssFeed(params[0]));
-                saveItems(mContext, itemList);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (XmlPullParserException e) {
-                e.printStackTrace();
-            }
-            return itemList;
-        }
-
-        @Override
-        protected void onPostExecute(List<ItemFeed> feed) {
-            //Toast.makeText(getApplicationContext(), "terminando...", Toast.LENGTH_SHORT).show();
-
-            feed = readItems();
-
-            //Adapter Personalizado
-            XmlFeedAdapter adapter = new XmlFeedAdapter(getApplicationContext(), R.layout.itemlista, feed);
-
-            //atualizar o list view
-            items.setAdapter(adapter);
-            items.setTextFilterEnabled(true);
-
-        }
-    }
 
 
     public ArrayList<ItemFeed> readItems(){
@@ -199,9 +170,19 @@ public class MainActivity extends Activity {
         return l;
     }
 
-    public String getNameUri(String s){
-        return s.substring(s.lastIndexOf('/'), s.length());
-    }
+    private BroadcastReceiver episodeDownloadListEvent = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            ArrayList<ItemFeed> feed = readItems();
+
+            //Adapter Personalizado
+            XmlFeedAdapter adapter = new XmlFeedAdapter(getApplicationContext(), R.layout.itemlista, feed);
+
+            //atualizar o list view
+            items.setAdapter(adapter);
+            items.setTextFilterEnabled(true);
+        }
+    };
 
     private BroadcastReceiver downloadCompletedEvent = new BroadcastReceiver() {
         @Override
@@ -218,47 +199,9 @@ public class MainActivity extends Activity {
     };
 
 
-    public void saveItems(Context context, List<ItemFeed> list){
-
-        for(ItemFeed i : list){
-            //Log.d("list", list.size()+"");
-            //Cursor aux = dbHelper.getWritableDatabase().query(PodcastDBHelper.DATABASE_TABLE,PodcastDBHelper.columns, null, new String[] {}, null, null, null);
-
-            Cursor aux = getContentResolver().query(PodcastProviderContract.EPISODE_LIST_URI, null,
-                    PodcastProviderContract.EPISODE_LINK+"=?", new String[]{i.getLink()}, null);
-
-            //Cursor aux2 = getContentResolver().query(PodcastProviderContract.EPISODE_LIST_URI, null,"", null, null);
-
-            Log.d("link", i.getLink()+"");
-            Log.d("title", i.getTitle()+"");
-            Log.d("date", i.getPubDate()+"");
-            Log.d("description", i.getDescription()+"");
-            Log.d("download", i.getDownloadLink()+"");
-
-
-            //so adiciona itens que nao estão no banco
-            if(aux.getCount()<=0){
-                ContentValues c = new ContentValues();
-                c.put(PodcastProviderContract.TITLE, i.getTitle());
-                c.put(PodcastProviderContract.EPISODE_LINK, i.getLink());
-                c.put(PodcastProviderContract.DATE, i.getPubDate());
-                c.put(PodcastProviderContract.DESCRIPTION, i.getDescription());
-                c.put(PodcastProviderContract.DOWNLOAD_LINK, i.getDownloadLink());
-                c.put(PodcastProviderContract.EPISODE_URI, Environment.DIRECTORY_DOWNLOADS+getNameUri(i.getDownloadLink()));
-                c.put(PodcastProviderContract.EPISODE_TIME, 0);
-                getContentResolver().insert(PodcastProviderContract.EPISODE_LIST_URI, c);
-                Log.d("diretorio", Environment.DIRECTORY_DOWNLOADS+getNameUri(i.getDownloadLink()));
-                //podcastProvider.insert(PodcastProviderContract.EPISODE_LIST_URI, c);
-                //dbHelper.getWritableDatabase().insert(PodcastDBHelper.DATABASE_TABLE, null, c);
-
-            }else{
-                Log.d("teste", "Episódio já salvo!");
-            }
-        }
-    }
 
     //TODO Opcional - pesquise outros meios de obter arquivos da internet
-    private String getRssFeed(String feed) throws IOException {
+    public static String getRssFeed(String feed) throws IOException {
         InputStream in = null;
         String rssFeed = "";
         try {

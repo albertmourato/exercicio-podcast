@@ -30,7 +30,7 @@
 
         <activity android:name=".ui.EpisodeDetailActivity"></activity>
         <service
-            android:name=".util.DownloadService"
+            android:name=".services.DownloadService"
             android:enabled="true"
             android:exported="true" />
 

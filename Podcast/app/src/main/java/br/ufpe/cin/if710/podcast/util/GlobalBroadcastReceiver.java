@@ -6,6 +6,7 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.service.notification.StatusBarNotification;
 
 import br.ufpe.cin.if710.podcast.ui.MainActivity;
 
@@ -24,12 +25,13 @@ public class GlobalBroadcastReceiver extends BroadcastReceiver {
         final Notification notification = new Notification.Builder(
                 context)
                 .setSmallIcon(android.R.drawable.stat_sys_download_done)
-                .setOngoing(true).setContentTitle("Download finalizado!")
+                .setOngoing(false).setContentTitle("Download finalizado!")
                 .setContentText("Clique para acessar a lista de episódios.")
                 .setContentIntent(pendingIntent).build();
 
         NotificationManager notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
         notificationManager.notify(1, notification);
+
         //TODO update database with "true" in downloaded column
     }
 }

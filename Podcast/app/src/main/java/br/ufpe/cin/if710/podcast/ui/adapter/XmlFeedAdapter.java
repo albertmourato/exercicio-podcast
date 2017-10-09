@@ -2,24 +2,24 @@ package br.ufpe.cin.if710.podcast.ui.adapter;
 
 import java.util.List;
 
-import android.Manifest;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.support.v4.app.ActivityCompat;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import br.ufpe.cin.if710.podcast.R;
-import br.ufpe.cin.if710.podcast.db.PodcastProviderContract;
 import br.ufpe.cin.if710.podcast.domain.ItemFeed;
-import br.ufpe.cin.if710.podcast.ui.EpisodeDetailActivity;
-import br.ufpe.cin.if710.podcast.util.DownloadService;
+import br.ufpe.cin.if710.podcast.ui.MainActivity;
+import br.ufpe.cin.if710.podcast.services.DownloadService;
+
+import static android.content.Context.NOTIFICATION_SERVICE;
 
 public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
 
@@ -83,15 +83,33 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+                button.setClickable(false);
+
+                final Intent notificationIntent = new Intent(getContext(), MainActivity.class);
+                final PendingIntent pendingIntent = PendingIntent.getActivity(getContext(), 0, notificationIntent, 0);
+
+                final Notification notification = new Notification.Builder(
+                        getContext())
+                        .setSmallIcon(android.R.drawable.stat_sys_download)
+                        .setOngoing(false).setContentTitle("Download em andamento!")
+                        .setContentText("O arquivo estará disponível em instantes...")
+                        .setContentIntent(pendingIntent).build();
+
+                NotificationManager notificationManager = (NotificationManager) getContext().getSystemService(NOTIFICATION_SERVICE);
+                notificationManager.notify(1, notification);
+
                 //Toast.makeText(getContext(), "Botao da posicao "+position, Toast.LENGTH_LONG).show();
                 Intent i = new Intent(getContext(),DownloadService.class);
                 //passando link pro getData do service
                 i.setData(Uri.parse(getItem(position).getDownloadLink()));
                 getContext().startService(i);
-                button.setText("Baixando...");
             }
         });
+
+
 /**
+ *
         convertView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -101,4 +119,6 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
 */
         return convertView;
     }
+
+
 }
