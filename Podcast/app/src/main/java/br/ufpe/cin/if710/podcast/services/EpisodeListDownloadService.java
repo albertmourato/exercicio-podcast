@@ -45,6 +45,7 @@ public class EpisodeListDownloadService extends IntentService {
         }
         Log.d("xml", "vou salvar o item");
         saveItems(getApplicationContext(),itemList);
+        //Atualiza a lista
         LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(new Intent(downloadEpisodeList));
     }
 

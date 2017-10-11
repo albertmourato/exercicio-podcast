@@ -72,27 +72,6 @@ public class MainActivity extends Activity {
         if (!(checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
         }
-        setListeners();
-
-
-    }
-
-    public void setListeners(){
-
-        items.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Log.d("list", i+"");
-                XmlFeedAdapter xmlFeedAdapter = (XmlFeedAdapter) adapterView.getAdapter();
-                ItemFeed item = xmlFeedAdapter.getItem(i);
-                Intent intent = new Intent(getApplicationContext(), EpisodeDetailActivity.class);
-                intent.putExtra(PodcastProviderContract.TITLE, item.getTitle());
-                intent.putExtra(PodcastProviderContract.EPISODE_LINK, item.getLink());
-                intent.putExtra(PodcastProviderContract.DESCRIPTION, item.getDescription());
-                intent.putExtra(PodcastProviderContract.DOWNLOAD_LINK, item.getDownloadLink());
-                startActivity(intent);
-            }
-        });
 
     }
 

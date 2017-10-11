@@ -15,7 +15,9 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import br.ufpe.cin.if710.podcast.R;
+import br.ufpe.cin.if710.podcast.db.PodcastProviderContract;
 import br.ufpe.cin.if710.podcast.domain.ItemFeed;
+import br.ufpe.cin.if710.podcast.ui.EpisodeDetailActivity;
 import br.ufpe.cin.if710.podcast.ui.MainActivity;
 import br.ufpe.cin.if710.podcast.services.DownloadService;
 
@@ -66,6 +68,9 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
         ViewHolder holder;
+        final ItemFeed itemFeed = getItem(position);
+
+
         if (convertView == null) {
             convertView = View.inflate(getContext(), linkResource, null);
             holder = new ViewHolder();
@@ -77,8 +82,23 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
             holder = (ViewHolder) convertView.getTag();
         }
 
-        holder.item_title.setText(getItem(position).getTitle());
-        holder.item_date.setText(getItem(position).getPubDate());
+        holder.item_title.setText(itemFeed.getTitle());
+        holder.item_date.setText(itemFeed.getPubDate());
+
+
+        holder.item_title.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getContext(), EpisodeDetailActivity.class);
+                intent.putExtra(PodcastProviderContract.TITLE, itemFeed.getTitle());
+                intent.putExtra(PodcastProviderContract.EPISODE_LINK, itemFeed.getLink());
+                intent.putExtra(PodcastProviderContract.DESCRIPTION, itemFeed.getDescription());
+                intent.putExtra(PodcastProviderContract.DOWNLOAD_LINK, itemFeed.getDownloadLink());
+                getContext().startActivity(intent);
+            }
+        });
+
+
         holder.button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -88,7 +108,7 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
                 //Toast.makeText(getContext(), "Botao da posicao "+position, Toast.LENGTH_LONG).show();
                 Intent i = new Intent(getContext(),DownloadService.class);
                 //passando link pro getData do service
-                i.setData(Uri.parse(getItem(position).getDownloadLink()));
+                i.setData(Uri.parse(itemFeed.getDownloadLink()));
                 getContext().startService(i);
 
                 final Intent notificationIntent = new Intent(getContext(), MainActivity.class);
