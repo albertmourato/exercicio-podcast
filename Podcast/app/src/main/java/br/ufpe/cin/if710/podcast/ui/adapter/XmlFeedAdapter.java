@@ -24,7 +24,6 @@ import static android.content.Context.NOTIFICATION_SERVICE;
 public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
 
     int linkResource;
-    public Button button;
 
     public XmlFeedAdapter(Context context, int resource, List<ItemFeed> objects) {
         super(context, resource, objects);
@@ -61,6 +60,7 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
     static class ViewHolder {
         TextView item_title;
         TextView item_date;
+        Button button;
     }
 
     @Override
@@ -72,19 +72,24 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
             holder.item_title = (TextView) convertView.findViewById(R.id.item_title);
             holder.item_date = (TextView) convertView.findViewById(R.id.item_date);
             convertView.setTag(holder);
-            button = convertView.findViewById(R.id.item_action);
+            holder.button = convertView.findViewById(R.id.item_action);
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
 
         holder.item_title.setText(getItem(position).getTitle());
         holder.item_date.setText(getItem(position).getPubDate());
-
-        button.setOnClickListener(new View.OnClickListener() {
+        holder.button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
-                button.setClickable(false);
+                ((Button) view).setText("Baixando...");
+
+                //Toast.makeText(getContext(), "Botao da posicao "+position, Toast.LENGTH_LONG).show();
+                Intent i = new Intent(getContext(),DownloadService.class);
+                //passando link pro getData do service
+                i.setData(Uri.parse(getItem(position).getDownloadLink()));
+                getContext().startService(i);
 
                 final Intent notificationIntent = new Intent(getContext(), MainActivity.class);
                 final PendingIntent pendingIntent = PendingIntent.getActivity(getContext(), 0, notificationIntent, 0);
@@ -99,11 +104,7 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
                 NotificationManager notificationManager = (NotificationManager) getContext().getSystemService(NOTIFICATION_SERVICE);
                 notificationManager.notify(1, notification);
 
-                //Toast.makeText(getContext(), "Botao da posicao "+position, Toast.LENGTH_LONG).show();
-                Intent i = new Intent(getContext(),DownloadService.class);
-                //passando link pro getData do service
-                i.setData(Uri.parse(getItem(position).getDownloadLink()));
-                getContext().startService(i);
+
             }
         });
 

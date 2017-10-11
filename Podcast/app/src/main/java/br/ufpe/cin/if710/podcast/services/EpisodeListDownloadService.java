@@ -33,21 +33,24 @@ public class EpisodeListDownloadService extends IntentService {
 
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
+        Log.d("xml", "entrei no service");
         List<ItemFeed> itemList = new ArrayList<>();
         try {
             itemList = XmlFeedParser.parse(MainActivity.getRssFeed(MainActivity.RSS_FEED));
+            Log.d("xml", itemList.size()+" itens pegos");
         } catch (XmlPullParserException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
+        Log.d("xml", "vou salvar o item");
         saveItems(getApplicationContext(),itemList);
         LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(new Intent(downloadEpisodeList));
     }
 
 
     public void saveItems(Context context, List<ItemFeed> list){
-
+        Log.d("xml", "entrei saveItems");
         for(ItemFeed i : list){
             //Log.d("list", list.size()+"");
             //Cursor aux = dbHelper.getWritableDatabase().query(PodcastDBHelper.DATABASE_TABLE,PodcastDBHelper.columns, null, new String[] {}, null, null, null);
@@ -57,11 +60,11 @@ public class EpisodeListDownloadService extends IntentService {
 
             //Cursor aux2 = getContentResolver().query(PodcastProviderContract.EPISODE_LIST_URI, null,"", null, null);
 
-            Log.d("link", i.getLink()+"");
-            Log.d("title", i.getTitle()+"");
-            Log.d("date", i.getPubDate()+"");
-            Log.d("description", i.getDescription()+"");
-            Log.d("download", i.getDownloadLink()+"");
+   //         Log.d("link", i.getLink()+"");
+  //          Log.d("title", i.getTitle()+"");
+ //           Log.d("date", i.getPubDate()+"");
+//            Log.d("description", i.getDescription()+"");
+//            Log.d("download", i.getDownloadLink()+"");
 
 
             //so adiciona itens que nao estão no banco
@@ -75,7 +78,8 @@ public class EpisodeListDownloadService extends IntentService {
                 c.put(PodcastProviderContract.EPISODE_URI, Environment.DIRECTORY_DOWNLOADS+getNameUri(i.getDownloadLink()));
                 c.put(PodcastProviderContract.EPISODE_TIME, 0);
                 getContentResolver().insert(PodcastProviderContract.EPISODE_LIST_URI, c);
-                Log.d("diretorio", Environment.DIRECTORY_DOWNLOADS+getNameUri(i.getDownloadLink()));
+
+                //Log.d("diretorio", Environment.DIRECTORY_DOWNLOADS+getNameUri(i.getDownloadLink()));
                 //podcastProvider.insert(PodcastProviderContract.EPISODE_LIST_URI, c);
                 //dbHelper.getWritableDatabase().insert(PodcastDBHelper.DATABASE_TABLE, null, c);
 
@@ -83,6 +87,7 @@ public class EpisodeListDownloadService extends IntentService {
                 Log.d("teste", "Episódio já salvo!");
             }
         }
+        Log.d("xml", "terminei de salvar");
     }
     public String getNameUri(String s){
         return s.substring(s.lastIndexOf('/'), s.length());

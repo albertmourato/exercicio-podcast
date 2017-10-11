@@ -121,8 +121,9 @@ public class MainActivity extends Activity {
     protected void onStart() {
         super.onStart();
         activityRunning = true;
-        Intent i = new Intent(this, EpisodeListDownloadService.class);
+        Intent i = new Intent(getApplicationContext(), EpisodeListDownloadService.class);
         startService(i);
+        Log.d("xml", "estartei o service");
     }
 
 
