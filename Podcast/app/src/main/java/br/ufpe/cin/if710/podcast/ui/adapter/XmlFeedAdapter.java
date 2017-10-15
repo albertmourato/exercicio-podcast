@@ -7,7 +7,10 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.graphics.Color;
 import android.net.Uri;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -86,6 +89,14 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
         holder.item_date.setText(itemFeed.getPubDate());
 
 
+        if(itemAlreadyDownloaded(getItem(position))){
+           holder.button.setText("Ouvir");
+            holder.button.setBackgroundColor(Color.MAGENTA);
+        }else{
+            holder.button.setText("Baixar");
+        }
+
+
         holder.item_title.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -103,27 +114,32 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
             @Override
             public void onClick(View view) {
 
-                ((Button) view).setText("Baixando...");
+                if(!itemAlreadyDownloaded(itemFeed)){
+                    ((Button) view).setText("Baixando...");
 
-                //Toast.makeText(getContext(), "Botao da posicao "+position, Toast.LENGTH_LONG).show();
-                Intent i = new Intent(getContext(),DownloadService.class);
-                //passando link pro getData do service
-                i.setData(Uri.parse(itemFeed.getDownloadLink()));
-                getContext().startService(i);
+                    //Toast.makeText(getContext(), "Botao da posicao "+position, Toast.LENGTH_LONG).show();
+                    Intent i = new Intent(getContext(),DownloadService.class);
+                    //passando link pro getData do service
+                    i.setData(Uri.parse(itemFeed.getDownloadLink()));
+                    i.putExtra("linkPosition", itemFeed.getDownloadLink());
+                    getContext().startService(i);
 
-                final Intent notificationIntent = new Intent(getContext(), MainActivity.class);
-                final PendingIntent pendingIntent = PendingIntent.getActivity(getContext(), 0, notificationIntent, 0);
+                    final Intent notificationIntent = new Intent(getContext(), MainActivity.class);
+                    final PendingIntent pendingIntent = PendingIntent.getActivity(getContext(), 0, notificationIntent, 0);
 
-                final Notification notification = new Notification.Builder(
-                        getContext())
-                        .setSmallIcon(android.R.drawable.stat_sys_download)
-                        .setOngoing(false).setContentTitle("Download em andamento!")
-                        .setContentText("O arquivo estará disponível em instantes...")
-                        .setContentIntent(pendingIntent).build();
+                    final Notification notification = new Notification.Builder(
+                            getContext())
+                            .setSmallIcon(android.R.drawable.stat_sys_download)
+                            .setOngoing(false).setContentTitle("Download em andamento!")
+                            .setContentText("O arquivo estará disponível em instantes...")
+                            .setContentIntent(pendingIntent).build();
 
-                NotificationManager notificationManager = (NotificationManager) getContext().getSystemService(NOTIFICATION_SERVICE);
-                notificationManager.notify(1, notification);
+                    NotificationManager notificationManager = (NotificationManager) getContext().getSystemService(NOTIFICATION_SERVICE);
+                    notificationManager.notify(1, notification);
 
+                }else{
+                    //Play
+                }
 
             }
         });
@@ -141,5 +157,12 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
         return convertView;
     }
 
+    public boolean itemAlreadyDownloaded(ItemFeed itemFeed){
+        Cursor cursor = getContext().getContentResolver().query(PodcastProviderContract.EPISODE_LIST_URI, null,
+                PodcastProviderContract.EPISODE_LINK+"=?", new String[]{itemFeed.getLink()}, null);
+        cursor.moveToNext();
+        String v = cursor.getString(cursor.getColumnIndex(PodcastProviderContract.EPISODE_DOWNLOADED));
+        return Boolean.parseBoolean(v);
+    }
 
 }

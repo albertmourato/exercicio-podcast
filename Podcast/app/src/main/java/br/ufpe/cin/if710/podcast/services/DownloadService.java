@@ -7,6 +7,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
@@ -74,7 +75,9 @@ public class DownloadService extends IntentService {
                     c.disconnect();
                 }
                 //implicit
+                Bundle b = i.getExtras();
                 Intent intent = new Intent(DOWNLOAD_COMPLETE);
+                intent.putExtra("linkPosition", b.getString("linkPosition"));
                 //explicit
                 //Intent intent = new Intent(getApplicationContext(), GlobalBroadcastReceiver.class);
                 //intent.putExtra("itemBaixado", i);
@@ -84,11 +87,6 @@ public class DownloadService extends IntentService {
                 }else{
                     sendBroadcast(intent);
                 }
-
-
-                //sendBroadcast(intent);
-
-                //Toast.makeText(getApplicationContext(), "DOWNLOAD FINALIZADO!", Toast.LENGTH_LONG).show();
 
             }else{
                 Toast.makeText(getApplicationContext(), "Conceda as premissões de armazenamento!", Toast.LENGTH_SHORT).show();

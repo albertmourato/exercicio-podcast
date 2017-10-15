@@ -2,6 +2,9 @@ package br.ufpe.cin.if710.podcast.ui;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -43,6 +46,7 @@ import br.ufpe.cin.if710.podcast.domain.XmlFeedParser;
 import br.ufpe.cin.if710.podcast.services.EpisodeListDownloadService;
 import br.ufpe.cin.if710.podcast.ui.adapter.XmlFeedAdapter;
 import br.ufpe.cin.if710.podcast.services.DownloadService;
+import br.ufpe.cin.if710.podcast.util.GlobalBroadcastReceiver;
 
 public class MainActivity extends Activity {
 
@@ -167,6 +171,16 @@ public class MainActivity extends Activity {
     private BroadcastReceiver downloadCompletedEvent = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            //Atualiza o item como baixado
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(PodcastProviderContract.EPISODE_DOWNLOADED, "true");
+            Bundle b = intent.getExtras();
+            String linkPosition = b.getString("linkPosition");
+            Log.d("linkBroadcast", linkPosition+"");
+            getContentResolver().update(PodcastProviderContract.EPISODE_LIST_URI, contentValues,
+                    PodcastProviderContract.DOWNLOAD_LINK + "=?", new String[]{linkPosition});
+
+            //Carrega os itens atualizados
             ArrayList<ItemFeed> arrayList = readItems();
             XmlFeedAdapter adapter = new XmlFeedAdapter(getApplicationContext(), R.layout.itemlista, arrayList);
 
@@ -174,10 +188,9 @@ public class MainActivity extends Activity {
             items.setAdapter(adapter);
             items.setTextFilterEnabled(true);
 
-            Toast.makeText(getApplicationContext(), "Itens atualizados!", Toast.LENGTH_SHORT).show();
+            GlobalBroadcastReceiver.sendDownloadFinishedNotification(getApplicationContext());
         }
     };
-
 
 
     //TODO Opcional - pesquise outros meios de obter arquivos da internet

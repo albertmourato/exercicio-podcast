@@ -77,7 +77,8 @@ public class EpisodeListDownloadService extends IntentService {
                 c.put(PodcastProviderContract.DESCRIPTION, i.getDescription());
                 c.put(PodcastProviderContract.DOWNLOAD_LINK, i.getDownloadLink());
                 c.put(PodcastProviderContract.EPISODE_URI, Environment.DIRECTORY_DOWNLOADS+getNameUri(i.getDownloadLink()));
-                c.put(PodcastProviderContract.EPISODE_TIME, 0);
+                c.put(PodcastProviderContract.EPISODE_TIME, "0");
+                c.put(PodcastProviderContract.EPISODE_DOWNLOADED, "false");
                 getContentResolver().insert(PodcastProviderContract.EPISODE_LIST_URI, c);
 
                 //Log.d("diretorio", Environment.DIRECTORY_DOWNLOADS+getNameUri(i.getDownloadLink()));
