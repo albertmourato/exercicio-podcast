@@ -5,6 +5,7 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -25,6 +26,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 import br.ufpe.cin.if710.podcast.db.PodcastDBHelper;
+import br.ufpe.cin.if710.podcast.db.PodcastProviderContract;
 import br.ufpe.cin.if710.podcast.ui.MainActivity;
 
 public class DownloadService extends IntentService {
@@ -50,6 +52,7 @@ public class DownloadService extends IntentService {
                 root.mkdirs();
 
                 //TODO colocar link no setData
+                //Pega o final do link de download colocado no setData do adapter
                 File output = new File(root, i.getData().getLastPathSegment());
                 if (output.exists()) {
                     output.delete();
@@ -77,10 +80,19 @@ public class DownloadService extends IntentService {
                 //implicit
                 Bundle b = i.getExtras();
                 Intent intent = new Intent(DOWNLOAD_COMPLETE);
-                intent.putExtra("linkPosition", b.getString("linkPosition"));
+                String linkPosition = b.getString("linkPosition");
+                intent.putExtra("linkPosition", linkPosition);
                 //explicit
                 //Intent intent = new Intent(getApplicationContext(), GlobalBroadcastReceiver.class);
                 //intent.putExtra("itemBaixado", i);
+
+                //setting uri
+                ContentValues contentValues = new ContentValues();
+                contentValues.put(PodcastProviderContract.EPISODE_URI, output.getPath());
+                Log.d("uri", output.getPath());
+                getContentResolver().update(PodcastProviderContract.EPISODE_LIST_URI,contentValues,
+                        PodcastProviderContract.DOWNLOAD_LINK +"=?" , new String[]{linkPosition});
+
 
                 if(MainActivity.activityRunning){
                     LocalBroadcastManager.getInstance(this).sendBroadcast(intent);

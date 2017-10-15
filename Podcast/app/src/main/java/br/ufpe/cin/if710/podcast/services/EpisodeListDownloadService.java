@@ -76,7 +76,7 @@ public class EpisodeListDownloadService extends IntentService {
                 c.put(PodcastProviderContract.DATE, i.getPubDate());
                 c.put(PodcastProviderContract.DESCRIPTION, i.getDescription());
                 c.put(PodcastProviderContract.DOWNLOAD_LINK, i.getDownloadLink());
-                c.put(PodcastProviderContract.EPISODE_URI, Environment.DIRECTORY_DOWNLOADS+getNameUri(i.getDownloadLink()));
+                c.put(PodcastProviderContract.EPISODE_URI, "");
                 c.put(PodcastProviderContract.EPISODE_TIME, "0");
                 c.put(PodcastProviderContract.EPISODE_DOWNLOADED, "false");
                 getContentResolver().insert(PodcastProviderContract.EPISODE_LIST_URI, c);
@@ -90,9 +90,6 @@ public class EpisodeListDownloadService extends IntentService {
             }
         }
         Log.d("xml", "terminei de salvar");
-    }
-    public String getNameUri(String s){
-        return s.substring(s.lastIndexOf('/'), s.length());
     }
 
 }

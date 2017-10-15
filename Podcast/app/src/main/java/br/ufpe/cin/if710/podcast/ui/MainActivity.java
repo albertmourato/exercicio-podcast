@@ -30,6 +30,7 @@ import android.widget.Toast;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -44,6 +45,7 @@ import br.ufpe.cin.if710.podcast.db.PodcastProviderContract;
 import br.ufpe.cin.if710.podcast.domain.ItemFeed;
 import br.ufpe.cin.if710.podcast.domain.XmlFeedParser;
 import br.ufpe.cin.if710.podcast.services.EpisodeListDownloadService;
+import br.ufpe.cin.if710.podcast.services.MusicPlayerService;
 import br.ufpe.cin.if710.podcast.ui.adapter.XmlFeedAdapter;
 import br.ufpe.cin.if710.podcast.services.DownloadService;
 import br.ufpe.cin.if710.podcast.util.GlobalBroadcastReceiver;
@@ -76,7 +78,6 @@ public class MainActivity extends Activity {
         if (!(checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED)) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
         }
-
     }
 
     @Override
@@ -104,6 +105,7 @@ public class MainActivity extends Activity {
     protected void onStart() {
         super.onStart();
         activityRunning = true;
+        verifyDirectory();
         Intent i = new Intent(getApplicationContext(), EpisodeListDownloadService.class);
         startService(i);
         Log.d("xml", "estartei o service");
@@ -118,6 +120,9 @@ public class MainActivity extends Activity {
 
         IntentFilter intent2 = new IntentFilter(EpisodeListDownloadService.downloadEpisodeList);
         LocalBroadcastManager.getInstance(this).registerReceiver(episodeDownloadListEvent, intent2);
+
+        IntentFilter intent3 = new IntentFilter(MusicPlayerService.COMPLETE_LISTENED);
+        LocalBroadcastManager.getInstance(this).registerReceiver(completlyListened, intent3);
 
     }
 
@@ -152,6 +157,58 @@ public class MainActivity extends Activity {
             l.add(item);
         }
         return l;
+    }
+
+    public ItemFeed readItem(String downloadLink){
+        Cursor c =  getContentResolver().query(PodcastProviderContract.EPISODE_LIST_URI, null,
+                PodcastProviderContract.DOWNLOAD_LINK, new String[]{downloadLink}, null);
+        c.moveToFirst();
+        while(c.moveToNext()){
+            if(c.getString(c.getColumnIndex(PodcastProviderContract.DOWNLOAD_LINK)).equals(downloadLink)){
+                String title = c.getString(c.getColumnIndex(PodcastProviderContract.TITLE));
+                String link = c.getString(c.getColumnIndex(PodcastProviderContract.EPISODE_LINK));
+                String pubDate = c.getString(c.getColumnIndex(PodcastProviderContract.DATE));
+                String desc = c.getString(c.getColumnIndex(PodcastProviderContract.DESCRIPTION));
+                ItemFeed item = new ItemFeed(title, link, pubDate, desc, downloadLink);
+                return item;
+            }
+        }
+        return null;
+    }
+
+
+
+    public void removeFromMemory(ItemFeed itemFeed){
+        Intent i = new Intent();
+        i.setData(Uri.parse(itemFeed.getDownloadLink()));
+        File root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        root.mkdirs();
+        File output = new File(root, i.getData().getLastPathSegment());
+        if (output.exists()) {
+            output.delete();
+        }
+    }
+
+
+    //Verifica se os itens salvos ainda estao no diretorio
+    private void verifyDirectory(){
+        Intent i = new Intent();
+        ArrayList<ItemFeed> arrayList = readItems();
+
+        for(ItemFeed itemFeed : arrayList){
+            i.setData(Uri.parse(itemFeed.getDownloadLink()));
+            File root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+            root.mkdirs();
+            File output = new File(root, i.getData().getLastPathSegment());
+            if (!output.exists()) {
+                ContentValues contentValues = new ContentValues();
+                contentValues.put(PodcastProviderContract.EPISODE_DOWNLOADED, "false");
+                contentValues.put(PodcastProviderContract.EPISODE_TIME, "0");
+                getContentResolver().update(PodcastProviderContract.EPISODE_LIST_URI,contentValues,
+                        PodcastProviderContract.DOWNLOAD_LINK+"=?", new String[]{itemFeed.getDownloadLink()});
+            }
+        }
+
     }
 
     private BroadcastReceiver episodeDownloadListEvent = new BroadcastReceiver() {
@@ -193,6 +250,21 @@ public class MainActivity extends Activity {
     };
 
 
+    private BroadcastReceiver completlyListened = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(PodcastProviderContract.EPISODE_TIME, "0");
+            contentValues.put(PodcastProviderContract.EPISODE_DOWNLOADED, "false");
+
+            getContentResolver().update(PodcastProviderContract.EPISODE_LIST_URI, contentValues,
+                    PodcastProviderContract.DOWNLOAD_LINK, new String[]{intent.getStringExtra("linkPosition")});
+
+            removeFromMemory(readItem(intent.getStringExtra("linkPosition")));
+
+        }
+    };
+
     //TODO Opcional - pesquise outros meios de obter arquivos da internet
     public static String getRssFeed(String feed) throws IOException {
         InputStream in = null;
@@ -215,4 +287,6 @@ public class MainActivity extends Activity {
         }
         return rssFeed;
     }
+
+
 }

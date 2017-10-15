@@ -1,5 +1,6 @@
 package br.ufpe.cin.if710.podcast.ui.adapter;
 
+import java.io.IOException;
 import java.util.List;
 
 import android.app.Notification;
@@ -9,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.util.Log;
 import android.view.View;
@@ -20,6 +22,7 @@ import android.widget.TextView;
 import br.ufpe.cin.if710.podcast.R;
 import br.ufpe.cin.if710.podcast.db.PodcastProviderContract;
 import br.ufpe.cin.if710.podcast.domain.ItemFeed;
+import br.ufpe.cin.if710.podcast.services.MusicPlayerService;
 import br.ufpe.cin.if710.podcast.ui.EpisodeDetailActivity;
 import br.ufpe.cin.if710.podcast.ui.MainActivity;
 import br.ufpe.cin.if710.podcast.services.DownloadService;
@@ -70,7 +73,7 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
 
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
-        ViewHolder holder;
+        final ViewHolder holder;
         final ItemFeed itemFeed = getItem(position);
 
 
@@ -90,7 +93,7 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
 
 
         if(itemAlreadyDownloaded(getItem(position))){
-           holder.button.setText("Ouvir");
+            holder.button.setText("Ouvir");
             holder.button.setBackgroundColor(Color.MAGENTA);
         }else{
             holder.button.setText("Baixar");
@@ -113,7 +116,7 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
         holder.button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                //se ainda nao foi feito download
                 if(!itemAlreadyDownloaded(itemFeed)){
                     ((Button) view).setText("Baixando...");
 
@@ -137,8 +140,13 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
                     NotificationManager notificationManager = (NotificationManager) getContext().getSystemService(NOTIFICATION_SERVICE);
                     notificationManager.notify(1, notification);
 
+                    //caso ja tenha sido feito o download
                 }else{
-                    //Play
+
+                    holder.button.setText("Pausar");
+                    Intent intent = new Intent(getContext(), MusicPlayerService.class);
+                    intent.putExtra("linkPosition", itemFeed.getDownloadLink());
+                    getContext().startService(intent);
                 }
 
             }
@@ -156,6 +164,7 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
 */
         return convertView;
     }
+
 
     public boolean itemAlreadyDownloaded(ItemFeed itemFeed){
         Cursor cursor = getContext().getContentResolver().query(PodcastProviderContract.EPISODE_LIST_URI, null,

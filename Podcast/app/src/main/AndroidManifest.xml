@@ -39,6 +39,11 @@
             android:enabled="true"
             android:exported="true" />
 
+        <service
+            android:name=".services.MusicPlayerService"
+            android:exported="true"
+            android:enabled="true"
+            />
 
         <receiver android:name=".util.GlobalBroadcastReceiver"
             android:enabled="true"
