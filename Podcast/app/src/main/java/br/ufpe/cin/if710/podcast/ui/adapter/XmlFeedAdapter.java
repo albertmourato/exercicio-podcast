@@ -97,6 +97,7 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
             holder.button.setBackgroundColor(Color.MAGENTA);
         }else{
             holder.button.setText("Baixar");
+
         }
 
 
@@ -142,8 +143,12 @@ public class XmlFeedAdapter extends ArrayAdapter<ItemFeed> {
 
                     //caso ja tenha sido feito o download
                 }else{
+                    if(holder.button.getText().equals("Pausar")){
+                        holder.button.setText("Ouvir");
+                    }else{
+                        holder.button.setText("Pausar");
+                    }
 
-                    holder.button.setText("Pausar");
                     Intent intent = new Intent(getContext(), MusicPlayerService.class);
                     intent.putExtra("linkPosition", itemFeed.getDownloadLink());
                     getContext().startService(intent);

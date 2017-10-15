@@ -27,17 +27,9 @@ public class MusicPlayerService extends Service {
     private final String TAG = "MusicPlayerNoBindingService";
 
     public static String COMPLETE_LISTENED = "COMPLETE_LISTENED";
-
     private static MediaPlayer mPlayer;
     private int mStartID;
     private String itemLink;
-
-    public static MediaPlayer getInstance(){
-        if(mPlayer==null){
-            mPlayer = new MediaPlayer();
-        }
-        return mPlayer;
-    }
 
     @Override
     public void onCreate() {
@@ -45,7 +37,7 @@ public class MusicPlayerService extends Service {
 
         // configurar media player
         //Nine Inch Nails Ghosts I-IV is licensed under a Creative Commons Attribution Non-Commercial Share Alike license.
-        mPlayer = getInstance();
+        mPlayer = new MediaPlayer();
 
         //nao deixa entrar em loop
         mPlayer.setLooping(false);
